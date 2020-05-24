@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
-
-	"github.com/golang-migrate/migrate/v4"
 )
 
 // Migrate runs the migrations from files in the migrations folder (relative)
-func Migrate(m *migrate.Migrate, action string) error {
+func Migrate(m Interface, action string) error {
 	var err error
 
 	switch strings.ToLower(action) {

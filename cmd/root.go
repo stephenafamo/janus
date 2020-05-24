@@ -5,7 +5,6 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/golang-migrate/migrate/v4"
 	"github.com/spf13/cobra"
 	"github.com/stephenafamo/janus/migrator"
 	"github.com/stephenafamo/orchestra"
@@ -15,7 +14,7 @@ import (
 type CMD struct {
 	Name, Slug, Version string
 
-	Migrator *migrate.Migrate
+	Migrator migrator.Interface
 	SeedFunc func(cmd *cobra.Command, args []string) error
 
 	Worker orchestra.Player

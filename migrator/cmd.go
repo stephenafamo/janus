@@ -1,17 +1,23 @@
 package migrator
 
 import (
-	"github.com/golang-migrate/migrate/v4"
 	"github.com/spf13/cobra"
 )
 
+// Interface in the main Migration tool.
+type Interface interface {
+	Up() error
+	Down() error
+	Drop() error
+}
+
 // Migrator is a migrator
 type Migrator struct {
-	m *migrate.Migrate
+	m Interface
 }
 
 // New creates a new Migrator
-func New(m *migrate.Migrate) *Migrator {
+func New(m Interface) *Migrator {
 	return &Migrator{m: m}
 }
 
