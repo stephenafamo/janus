@@ -1,8 +1,10 @@
 package views
 
 import (
+	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 )
 
 // TemplateExecutor is an interface that render templates
@@ -10,12 +12,11 @@ type TemplateExecutor interface {
 	// Render will execute a template with the data provided
 	Render(wr io.Writer, name string, data interface{}) error
 
-	// Lookup checks for the presence of a template
-	// Returns nil if it does not exist
-	Lookup(name string) *template.Template
+	// Exists checks for the presence of a template
+	Exists(name string) bool
 
-	// New adds a new template
-	New(name string) *template.Template
+	// Add adds a new template to the executor
+	Add(name string, data io.Reader) error
 }
 
 // NewProdExecutor returns *ProdTemplateExecutor
@@ -54,6 +55,28 @@ type ProdTemplateExecutor struct {
 	*template.Template
 }
 
+// Exists checks for the presence of a template
+func (p ProdTemplateExecutor) Exists(name string) bool {
+	return p.Lookup(name) != nil
+}
+
+// Add adds a new template to the executor
+func (p ProdTemplateExecutor) Add(name string, data io.Reader) error {
+
+	byts, err := ioutil.ReadAll(data)
+	if err != nil {
+		return fmt.Errorf("error reading bytes from new template: %w", err)
+	}
+
+	nt := p.Template.New(name)
+	_, err = nt.Parse(string(byts))
+	if err != nil {
+		return fmt.Errorf("error parsing new template: %w", err)
+	}
+
+	return nil
+}
+
 // Render implements the templateExecutor interface
 func (p ProdTemplateExecutor) Render(wr io.Writer, name string, data interface{}) error {
 	return p.ExecuteTemplate(wr, name, data)
@@ -64,6 +87,28 @@ func (p ProdTemplateExecutor) Render(wr io.Writer, name string, data interface{}
 type HotTemplateExecutor struct {
 	*template.Template
 	files templates
+}
+
+// Exists checks for the presence of a template
+func (h HotTemplateExecutor) Exists(name string) bool {
+	return h.Lookup(name) != nil
+}
+
+// Add adds a new template to the executor
+func (h HotTemplateExecutor) Add(name string, data io.Reader) error {
+
+	byts, err := ioutil.ReadAll(data)
+	if err != nil {
+		return fmt.Errorf("error reading bytes from new template: %w", err)
+	}
+
+	nt := h.Template.New(name)
+	_, err = nt.Parse(string(byts))
+	if err != nil {
+		return fmt.Errorf("error parsing new template: %w", err)
+	}
+
+	return nil
 }
 
 // Render implements the templateExecutor interface

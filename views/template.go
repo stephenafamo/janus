@@ -1,7 +1,7 @@
 package views
 
 import (
-	"io/ioutil"
+	"fmt"
 	"net/http"
 )
 
@@ -11,37 +11,24 @@ type templates interface {
 }
 
 func loadTemplates(tpl TemplateExecutor, t templates) error {
-
-	err := t.Walk(func(path string, file http.File) error {
+	return t.Walk(func(path string, file http.File) error {
 		if file == nil {
 			return nil
 		}
 
 		finfo, err := file.Stat()
 		if err != nil {
-			return err
+			return fmt.Errorf("error getting filel info: %w", err)
 		}
 
 		if finfo.IsDir() {
 			return nil
 		}
 
-		data, err := ioutil.ReadAll(file)
+		err = tpl.Add(path, file)
 		if err != nil {
-			return err
-		}
-
-		nt := tpl.New(path)
-		_, err = nt.Parse(string(data))
-		if err != nil {
-			return err
+			return fmt.Errorf("error adding new template: %w", err)
 		}
 		return nil
 	})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
