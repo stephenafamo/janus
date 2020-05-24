@@ -43,27 +43,27 @@ func WriteError(w http.ResponseWriter, r *http.Request, err error, code int) {
 }
 
 // SetDomains for our handler
-func (c Controller) SetDomains(d []string) {
+func (c *Controller) SetDomains(d []string) {
 	c.Domains = d
 }
 
 // SetTemplates for our handler
-func (c Controller) SetTemplates(t views.TemplateExecutor) {
+func (c *Controller) SetTemplates(t views.TemplateExecutor) {
 	c.Templates = t
 }
 
 // SetStore for our handler
-func (c Controller) SetStore(s store.Store) {
+func (c *Controller) SetStore(s store.Store) {
 	c.Store = s
 }
 
 // SetAssets for our handler
-func (c Controller) SetAssets(s http.FileSystem) {
+func (c *Controller) SetAssets(s http.FileSystem) {
 	c.Assets = s
 }
 
 // SetAuth for our handler
-func (c Controller) SetAuth(a auth.Authenticator) {
+func (c *Controller) SetAuth(a auth.Authenticator) {
 	c.Auth = a
 }
 
