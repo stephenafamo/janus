@@ -3,8 +3,6 @@ package views
 import (
 	"io/ioutil"
 	"net/http"
-	"path/filepath"
-	"strings"
 )
 
 // Templates is an interface containing the templates
@@ -33,12 +31,7 @@ func loadTemplates(tpl TemplateExecutor, t templates) error {
 			return err
 		}
 
-		nt := tpl.New(
-			strings.TrimSuffix(
-				path,
-				filepath.Ext(finfo.Name()),
-			),
-		)
+		nt := tpl.New(path)
 		_, err = nt.Parse(string(data))
 		if err != nil {
 			return err

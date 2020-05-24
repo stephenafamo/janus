@@ -78,7 +78,7 @@ func (c *CMD) Execute() error {
 	return c.cmd.Execute()
 }
 
-// GetCobra gets the build *cobra.Command runs the root command.
+// GetCobra gets the built *cobra.Command runs the root command.
 func (c *CMD) GetCobra() *cobra.Command {
 	c.buildCMD()
 	return c.cmd
