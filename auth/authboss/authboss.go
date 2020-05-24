@@ -1,0 +1,114 @@
+package authboss
+
+import (
+	"context"
+	"log"
+	"net/http"
+
+	"github.com/justinas/nosurf"
+	"github.com/stephenafamo/janus/auth"
+	"github.com/volatiletech/authboss"
+)
+
+// Authboss satisfies the Auth interface
+// Based on the excellent package github.com/volatiletech/authboss
+type Authboss struct {
+	*authboss.Authboss
+
+	// For module middlewares
+	ExtraDefaultMiddlewares  []func(http.Handler) http.Handler
+	ExtraDProtectMiddlewares []func(http.Handler) http.Handler
+}
+
+// Flush satisfies the Auth interface
+func (a Authboss) Flush(rw http.ResponseWriter) error {
+	authboss.DelAllSession(rw, []string{
+		authboss.FlashSuccessKey,
+		authboss.FlashErrorKey,
+	})
+	authboss.DelKnownCookie(rw)
+	return nil
+}
+
+// Redirect satisfies the Auth interface
+func (a Authboss) Redirect(rw http.ResponseWriter, req *http.Request, redir auth.RedirectOptions) error {
+	ro := authboss.RedirectOptions{
+		Success:          redir.Success(),
+		Failure:          redir.Failure(),
+		RedirectPath:     redir.Path(),
+		FollowRedirParam: true,
+	}
+	if err := a.Core.Redirector.Redirect(rw, req, ro); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Router satisfies the Auth interfaces
+func (a Authboss) Router() http.Handler {
+	return a.Config.Core.Router
+}
+
+// DefaultMiddlewares satisfies the Auth interfaces
+func (a Authboss) DefaultMiddlewares() []func(http.Handler) http.Handler {
+	return []func(http.Handler) http.Handler{
+		a.LoadClientStateMiddleware,
+		a.DataInjector,
+		a.RedirectIfLoggedIn,
+	}
+}
+
+// ProtectMidelewares satisfies the Auth interfaces
+func (a *Authboss) ProtectMidelewares() []func(http.Handler) http.Handler {
+	return []func(http.Handler) http.Handler{
+		authboss.Middleware2(
+			a.Authboss,
+			authboss.RequireNone,
+			authboss.RespondRedirect,
+		),
+	}
+}
+
+// RedirectIfLoggedIn redirects logged in users if visiting the login or register page
+func (a *Authboss) RedirectIfLoggedIn(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		pid, err := a.CurrentUserID(r)
+		if err != nil {
+			log.Printf("Error in RedirectIfLoggedIn middleware: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+
+		mountPath := a.Config.Paths.Mount
+		switch r.URL.Path {
+		case mountPath + "/login", mountPath + "/register":
+			if pid != "" {
+				ro := authboss.RedirectOptions{
+					Code:             http.StatusTemporaryRedirect,
+					RedirectPath:     a.Paths.AuthLoginOK,
+					FollowRedirParam: true,
+				}
+				if err := a.Core.Redirector.Redirect(w, r, ro); err != nil {
+					log.Printf("Error in RedirectIfLoggedIn middleware: %v", err)
+					http.Error(w, "Internal server error", http.StatusInternalServerError)
+				}
+			}
+		}
+
+		h.ServeHTTP(w, r)
+	})
+}
+
+// DataInjector is a middleware that adds some auth related values to context
+func (a *Authboss) DataInjector(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data := authboss.HTMLData{
+			"baseUrl":       a.Config.Paths.RootURL,
+			"flash_success": authboss.FlashSuccess(w, r),
+			"flash_error":   authboss.FlashError(w, r),
+			"csrf_token":    nosurf.Token(r),
+		}
+		r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyData, data))
+		handler.ServeHTTP(w, r)
+	})
+}
