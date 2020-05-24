@@ -5,12 +5,12 @@ import (
 	"net/http"
 )
 
-// Templates is an interface containing the templates
-type templates interface {
+// Templates is an interface containing the raw templates
+type Templates interface {
 	Walk(func(path string, file http.File) error) error
 }
 
-func loadTemplates(tpl TemplateExecutor, t templates) error {
+func loadTemplates(tpl TemplateExecutor, t Templates) error {
 	return t.Walk(func(path string, file http.File) error {
 		if file == nil {
 			return nil

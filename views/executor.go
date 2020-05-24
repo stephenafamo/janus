@@ -21,7 +21,7 @@ type TemplateExecutor interface {
 
 // NewProdExecutor returns *ProdTemplateExecutor
 // it implements the Executor interface
-func NewProdExecutor(tpls templates, funcs template.FuncMap) (*ProdTemplateExecutor, error) {
+func NewProdExecutor(tpls Templates, funcs template.FuncMap) (*ProdTemplateExecutor, error) {
 
 	t := &ProdTemplateExecutor{newTemplate(funcs)}
 
@@ -37,7 +37,7 @@ func NewProdExecutor(tpls templates, funcs template.FuncMap) (*ProdTemplateExecu
 // that implements the Executor interface
 // If will parse all the templates before rendering each time.
 // This is slower but useful during development
-func NewHotExecutor(tpls templates, funcs template.FuncMap) (*HotTemplateExecutor, error) {
+func NewHotExecutor(tpls Templates, funcs template.FuncMap) (*HotTemplateExecutor, error) {
 
 	t := &HotTemplateExecutor{Template: newTemplate(funcs), files: tpls}
 
@@ -86,7 +86,7 @@ func (p ProdTemplateExecutor) Render(wr io.Writer, name string, data interface{}
 // It will reload the templates before each render
 type HotTemplateExecutor struct {
 	*template.Template
-	files templates
+	files Templates
 }
 
 // Exists checks for the presence of a template
