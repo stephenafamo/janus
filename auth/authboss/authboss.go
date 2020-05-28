@@ -10,6 +10,11 @@ import (
 	"github.com/volatiletech/authboss"
 )
 
+// GetCsrfToken gets the csrf token that authboss adds to HTMLData
+var GetCsrfToken = func(r *http.Request) string {
+	return nosurf.Token(r)
+}
+
 // Authboss satisfies the Auth interface
 // Based on the excellent package github.com/volatiletech/authboss
 type Authboss struct {
@@ -60,18 +65,19 @@ func (a Authboss) DefaultMiddlewares() []func(http.Handler) http.Handler {
 }
 
 // ProtectMidelewares satisfies the Auth interfaces
-func (a *Authboss) ProtectMidelewares() []func(http.Handler) http.Handler {
+func (a Authboss) ProtectMidelewares() []func(http.Handler) http.Handler {
 	return []func(http.Handler) http.Handler{
 		authboss.Middleware2(
 			a.Authboss,
 			authboss.RequireNone,
 			authboss.RespondRedirect,
 		),
+		a.AddUserIDToContext,
 	}
 }
 
 // RedirectIfLoggedIn redirects logged in users if visiting the login or register page
-func (a *Authboss) RedirectIfLoggedIn(h http.Handler) http.Handler {
+func (a Authboss) RedirectIfLoggedIn(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pid, err := a.CurrentUserID(r)
 		if err != nil {
@@ -100,13 +106,13 @@ func (a *Authboss) RedirectIfLoggedIn(h http.Handler) http.Handler {
 }
 
 // DataInjector is a middleware that adds some auth related values to context
-func (a *Authboss) DataInjector(handler http.Handler) http.Handler {
+func (a Authboss) DataInjector(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data := authboss.HTMLData{
 			"baseUrl":       a.Config.Paths.RootURL,
 			"flash_success": authboss.FlashSuccess(w, r),
 			"flash_error":   authboss.FlashError(w, r),
-			"csrf_token":    nosurf.Token(r),
+			"csrf_token":    GetCsrfToken(r),
 		}
 		r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyData, data))
 		handler.ServeHTTP(w, r)
