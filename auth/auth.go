@@ -6,7 +6,8 @@ import (
 
 type ctxKey string
 
-var ctxUserID ctxKey = "userID"
+// CtxUserID is the context key for the user ID
+var CtxUserID ctxKey = "userID"
 
 // Authenticator is the authenticator
 type Authenticator interface {
