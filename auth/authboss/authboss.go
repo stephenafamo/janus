@@ -59,6 +59,7 @@ func (a Authboss) Router() http.Handler {
 func (a Authboss) DefaultMiddlewares() []func(http.Handler) http.Handler {
 	return []func(http.Handler) http.Handler{
 		a.LoadClientStateMiddleware,
+		a.AddUserIDToContext,
 		a.DataInjector,
 		a.RedirectIfLoggedIn,
 	}
@@ -72,7 +73,6 @@ func (a Authboss) ProtectMidelewares() []func(http.Handler) http.Handler {
 			authboss.RequireNone,
 			authboss.RespondRedirect,
 		),
-		a.AddUserIDToContext,
 	}
 }
 
@@ -115,6 +115,20 @@ func (a Authboss) DataInjector(handler http.Handler) http.Handler {
 			"csrf_token":    GetCsrfToken(r),
 		}
 		r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyData, data))
+		handler.ServeHTTP(w, r)
+	})
+}
+
+// AddUserIDToContext is a middleware that adds some auth related values to context
+func (a Authboss) AddUserIDToContext(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		pid, err := a.CurrentUserID(r)
+		if err != nil {
+			log.Printf("Error in AddUserIDToContext middleware: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+
+		r = r.WithContext(context.WithValue(r.Context(), auth.CtxUserID, pid))
 		handler.ServeHTTP(w, r)
 	})
 }
