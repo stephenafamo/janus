@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/stephenafamo/janus/migrator"
@@ -15,9 +16,7 @@ type CMD struct {
 	Name, Slug, Version string
 
 	Migrator migrator.Interface
-	SeedFunc func(cmd *cobra.Command, args []string) error
-
-	Worker orchestra.Player
+	Workers  map[string]orchestra.Player
 
 	cmd *cobra.Command
 }
@@ -43,25 +42,32 @@ func (c *CMD) buildCMD() {
 		rootCmd.AddCommand(migrator.New(c.Migrator).Cmd())
 	}
 
-	if c.SeedFunc != nil {
+	if len(c.Workers) > 0 {
 		rootCmd.AddCommand(&cobra.Command{
-			Use:   "seed",
-			Short: "Run the database seeder",
-			// Long:  "Run the database seeder. Be careful, this will wipe the existing data.",
-			Long: fmt.Sprintf(`Run the database seeder`),
-			Args: cobra.ArbitraryArgs,
-			RunE: c.SeedFunc,
-		})
-	}
-
-	if c.Worker != nil {
-		rootCmd.AddCommand(&cobra.Command{
-			Use:   "start",
-			Short: fmt.Sprintf("Start %s", c.Name),
-			Long:  fmt.Sprintf("Start %s", c.Name),
+			Use:   "run",
+			Short: fmt.Sprintf("Run a %s worker", c.Name),
+			Long:  fmt.Sprintf("Run a %s worker", c.Name),
 			RunE: func(cmd *cobra.Command, args []string) error {
+
+				conductor := &orchestra.Conductor{
+					Timeout: 5 * time.Second,
+					Players: make(map[string]orchestra.Player),
+				}
+
+				// Start all if no args were given
+				if len(args) == 0 {
+					conductor.Players = c.Workers
+				}
+
+				for _, pl := range args {
+					player, ok := c.Workers[pl]
+					if ok {
+						conductor.Players[pl] = player
+					}
+				}
+
 				return orchestra.PlayUntilSignal(
-					c.Worker,
+					conductor,
 					os.Interrupt, syscall.SIGTERM,
 				)
 			},
