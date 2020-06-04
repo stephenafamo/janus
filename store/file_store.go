@@ -31,28 +31,24 @@ func (f FileStore) createDirIfNotExist(dir string) error {
 	return nil // directory exists
 }
 
-func (f FileStore) doesFileExist(path string) (bool, error) {
+// FileExists checks if a file is present in the store
+func (f FileStore) FileExists(path string) bool {
 	filename := filepath.Join(f.Directory, path)
 
 	_, err := os.Stat(filename)
 
-	if err != nil && os.IsNotExist(err) {
-		return false, nil // files does not exist
+	if os.IsNotExist(err) {
+		return false // files does not exist
 	}
 
-	return true, err
+	return true
 }
 
 // AddFile adds a file to the store
 func (f FileStore) AddFile(path string, file io.Reader) error {
 	var err error
 
-	exists, err := f.doesFileExist(path)
-
-	if err != nil {
-		return err
-	}
-	if exists != false {
+	if f.FileExists(path) != false {
 		return errors.New("file: '" + path + "' already exists")
 	}
 
@@ -65,8 +61,8 @@ func (f FileStore) AddFile(path string, file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Flie added: %#v \n", filename)
 
+	fmt.Printf("Flie created: %#v \n", path)
 	return f.UpdateFile(path, file)
 }
 
@@ -74,12 +70,7 @@ func (f FileStore) AddFile(path string, file io.Reader) error {
 func (f FileStore) UpdateFile(path string, file io.Reader) error {
 	var err error
 
-	exists, err := f.doesFileExist(path)
-
-	if err != nil {
-		return err
-	}
-	if exists != true {
+	if f.FileExists(path) != true {
 		return errors.New("file: '" + path + "' does not exists")
 	}
 
@@ -93,6 +84,7 @@ func (f FileStore) UpdateFile(path string, file io.Reader) error {
 	defer newFile.Close()
 	io.Copy(newFile, file)
 
+	fmt.Printf("Flie updated: %#v \n", path)
 	return nil
 }
 
@@ -114,7 +106,14 @@ func (f FileStore) AddOrUpdateFile(path string, file io.Reader) error {
 
 // DeleteFile deletes a file from the store
 func (f FileStore) DeleteFile(path string) error {
-	return os.Remove(path)
+	filename := filepath.Join(f.Directory, path)
+	err := os.Remove(filename)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Flie deleted: %#v \n", path)
+	return nil
 }
 
 // GetFile gets a file from the store
@@ -122,12 +121,7 @@ func (f FileStore) GetFile(path string) (io.Reader, error) {
 	var file io.Reader
 	var err error
 
-	exists, err := f.doesFileExist(path)
-
-	if err != nil {
-		return file, err
-	}
-	if exists != true {
+	if f.FileExists(path) != true {
 		return file, errors.New("file: '" + path + "' does not exists")
 	}
 
