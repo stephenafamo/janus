@@ -10,7 +10,7 @@ import (
 	"github.com/stephenafamo/janus/auth"
 	"github.com/stephenafamo/janus/middlewares"
 	"github.com/stephenafamo/janus/store"
-	"github.com/stephenafamo/janus/views"
+	"github.com/stephenafamo/janus/views/executor"
 )
 
 type mid = func(http.Handler) http.Handler
@@ -30,7 +30,7 @@ var CSRFMiddleware middlewares.CSRF = middlewares.Nosurf{}
 // for our http.Server
 type Broker struct {
 	Domains   []string
-	Templates views.TemplateExecutor
+	Templates executor.Executor
 	Store     store.Store
 	Assets    http.FileSystem
 	Auth      auth.Authenticator
@@ -50,7 +50,7 @@ func (b *Broker) SetDomains(d []string) {
 }
 
 // SetTemplates for our handler
-func (b *Broker) SetTemplates(t views.TemplateExecutor) {
+func (b *Broker) SetTemplates(t executor.Executor) {
 	b.Templates = t
 }
 

@@ -1,4 +1,4 @@
-package views
+package source
 
 import (
 	"net/http"
@@ -11,6 +11,13 @@ import (
 // based on the excellent packr library.
 type FileTemplates struct {
 	Root string
+}
+
+// NewFile return a new instance of FileTemplates when given a root directory
+func NewFile(rootDir string) FileTemplates {
+	return FileTemplates{
+		Root: rootDir,
+	}
 }
 
 // Walk imiplements the Templates interface
@@ -30,11 +37,4 @@ func (p FileTemplates) Walk(walkFunc func(string, http.File) error) error {
 
 		return walkFunc(strings.TrimPrefix(path, dirPrefix), file)
 	})
-}
-
-// NewFile return a new instance of FileTemplates when given a root directory
-func NewFile(rootDir string) FileTemplates {
-	return FileTemplates{
-		Root: rootDir,
-	}
 }
