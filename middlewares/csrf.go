@@ -25,7 +25,7 @@ func (Nosurf) Middleware(h http.Handler) http.Handler {
 	}))
 
 	// necessary so we don't get duplicate cookies which makes the validation fail in some cases
-	surfing.SetBaseCookie(http.Cookie{Path: "/"})
+	surfing.SetBaseCookie(http.Cookie{Path: "/", MaxAge: nosurf.MaxAge})
 
 	return surfing
 }
