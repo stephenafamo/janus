@@ -24,6 +24,9 @@ func (Nosurf) Middleware(h http.Handler) http.Handler {
 		w.WriteHeader(http.StatusBadRequest)
 	}))
 
+	// necessary so we don't get duplicate cookies which makes the validation fail in some cases
+	surfing.SetBaseCookie(http.Cookie{Path: "/"})
+
 	return surfing
 }
 
