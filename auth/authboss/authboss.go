@@ -7,7 +7,7 @@ import (
 
 	"github.com/justinas/nosurf"
 	"github.com/stephenafamo/janus/auth"
-	"github.com/volatiletech/authboss"
+	"github.com/volatiletech/authboss/v3"
 )
 
 // GetCsrfToken gets the csrf token that authboss adds to HTMLData
