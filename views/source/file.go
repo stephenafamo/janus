@@ -24,6 +24,11 @@ func NewFile(rootDir string) FileTemplates {
 func (p FileTemplates) Walk(walkFunc func(string, http.File) error) error {
 	return filepath.Walk(p.Root, func(path string, info os.FileInfo, err error) error {
 
+		// Ignore hidden files (files that start with a period)
+		if strings.HasPrefix(info.Name(), ".") {
+			return nil
+		}
+
 		if err != nil {
 			return err
 		}

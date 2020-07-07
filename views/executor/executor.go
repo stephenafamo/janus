@@ -30,7 +30,7 @@ func loadTemplates(tpl Executor, t source.Templates) error {
 
 		finfo, err := file.Stat()
 		if err != nil {
-			return fmt.Errorf("error getting filel info: %w", err)
+			return fmt.Errorf("error getting file info: %w", err)
 		}
 
 		if finfo.IsDir() {
