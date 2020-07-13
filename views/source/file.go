@@ -10,7 +10,9 @@ import (
 // FileTemplates is an implementation of the Templates interface
 // based on the excellent packr library.
 type FileTemplates struct {
-	Root string
+	Root       string
+	Suffix     string // required suffix for template files
+	TrimSuffix bool   // should suffix be removed from template names?
 }
 
 // NewFile return a new instance of FileTemplates when given a root directory
@@ -29,6 +31,11 @@ func (p FileTemplates) Walk(walkFunc func(string, http.File) error) error {
 			return nil
 		}
 
+		// Skip files that do not have the required suffix
+		if !strings.HasSuffix(path, p.Suffix) {
+			return nil
+		}
+
 		if err != nil {
 			return err
 		}
@@ -40,6 +47,11 @@ func (p FileTemplates) Walk(walkFunc func(string, http.File) error) error {
 
 		dirPrefix := filepath.Clean(p.Root) + "/"
 
-		return walkFunc(strings.TrimPrefix(path, dirPrefix), file)
+		cleanPath := strings.TrimPrefix(path, dirPrefix)
+		if p.TrimSuffix {
+			cleanPath = strings.TrimSuffix(cleanPath, p.Suffix)
+		}
+
+		return walkFunc(cleanPath, file)
 	})
 }
