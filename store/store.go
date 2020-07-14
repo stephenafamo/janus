@@ -38,12 +38,14 @@ func (s *storeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("ERROR: Unable to get file %v", err)
 		http.Error(w, http.StatusText(errCode), errCode)
+		return
 	}
 
 	fileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		log.Printf("ERROR: Unable to read file %v", err)
 		http.Error(w, http.StatusText(errCode), errCode)
+		return
 	}
 
 	// If Content-Type isn't set, use the file's extension to find it, but
