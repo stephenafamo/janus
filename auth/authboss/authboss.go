@@ -2,6 +2,7 @@ package authboss
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 
@@ -123,12 +124,15 @@ func (a Authboss) DataInjector(handler http.Handler) http.Handler {
 func (a Authboss) AddUserIDToContext(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, err := a.CurrentUser(r)
-		if err != nil {
+		if err != nil && !errors.Is(err, authboss.ErrUserNotFound) {
 			log.Printf("Error in AddUserIDToContext middleware: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 		}
 
-		r = r.WithContext(context.WithValue(r.Context(), auth.CtxUserID, user.GetPID()))
+		if !errors.Is(err, authboss.ErrUserNotFound) {
+			r = r.WithContext(context.WithValue(r.Context(), auth.CtxUserID, user.GetPID()))
+		}
+
 		handler.ServeHTTP(w, r)
 	})
 }
