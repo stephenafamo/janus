@@ -122,13 +122,13 @@ func (a Authboss) DataInjector(handler http.Handler) http.Handler {
 // AddUserIDToContext is a middleware that adds some auth related values to context
 func (a Authboss) AddUserIDToContext(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pid, err := a.CurrentUserID(r)
+		user, err := a.CurrentUser(r)
 		if err != nil {
 			log.Printf("Error in AddUserIDToContext middleware: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 		}
 
-		r = r.WithContext(context.WithValue(r.Context(), auth.CtxUserID, pid))
+		r = r.WithContext(context.WithValue(r.Context(), auth.CtxUserID, user.GetPID()))
 		handler.ServeHTTP(w, r)
 	})
 }
