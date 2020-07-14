@@ -90,6 +90,7 @@ func (a Authboss) RedirectIfLoggedIn(h http.Handler) http.Handler {
 		switch r.URL.Path {
 		case mountPath + "/login", mountPath + "/register":
 			if pid != "" {
+				log.Printf("Redirecting authorized user %q", pid)
 				ro := authboss.RedirectOptions{
 					Code:             http.StatusTemporaryRedirect,
 					RedirectPath:     a.Paths.AuthLoginOK,
