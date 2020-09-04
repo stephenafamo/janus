@@ -22,8 +22,8 @@ type Authboss struct {
 	*authboss.Authboss
 
 	// For module middlewares
-	ExtraDefaultMiddlewares  []func(http.Handler) http.Handler
-	ExtraDProtectMiddlewares []func(http.Handler) http.Handler
+	ExtraDefaultMiddlewares []func(http.Handler) http.Handler
+	ExtraProtectMiddlewares []func(http.Handler) http.Handler
 }
 
 // Flush satisfies the Auth interface
@@ -58,23 +58,33 @@ func (a Authboss) Router() http.Handler {
 
 // DefaultMiddlewares satisfies the Auth interfaces
 func (a Authboss) DefaultMiddlewares() []func(http.Handler) http.Handler {
-	return []func(http.Handler) http.Handler{
+	mids := []func(http.Handler) http.Handler{
 		a.LoadClientStateMiddleware,
 		a.AddUserIDToContext,
 		a.DataInjector,
 		a.RedirectIfLoggedIn,
 	}
+	if a.ExtraDefaultMiddlewares != nil {
+		mids = append(mids, a.ExtraDefaultMiddlewares...)
+	}
+
+	return mids
 }
 
 // ProtectMidelewares satisfies the Auth interfaces
 func (a Authboss) ProtectMidelewares() []func(http.Handler) http.Handler {
-	return []func(http.Handler) http.Handler{
+	mids := []func(http.Handler) http.Handler{
 		authboss.Middleware2(
 			a.Authboss,
 			authboss.RequireNone,
 			authboss.RespondRedirect,
 		),
 	}
+	if a.ExtraProtectMiddlewares != nil {
+		mids = append(mids, a.ExtraProtectMiddlewares...)
+	}
+
+	return mids
 }
 
 // RedirectIfLoggedIn redirects logged in users if visiting the login or register page
@@ -91,9 +101,15 @@ func (a Authboss) RedirectIfLoggedIn(h http.Handler) http.Handler {
 		case mountPath + "/login", mountPath + "/register":
 			if pid != "" {
 				log.Printf("Redirecting authorized user %q", pid)
+
+				redirTo := r.FormValue("redir")
+				if redirTo == "" {
+					redirTo = a.Paths.AuthLoginOK
+				}
+
 				ro := authboss.RedirectOptions{
 					Code:             http.StatusTemporaryRedirect,
-					RedirectPath:     a.Paths.AuthLoginOK,
+					RedirectPath:     redirTo,
 					FollowRedirParam: true,
 				}
 				if err := a.Core.Redirector.Redirect(w, r, ro); err != nil {

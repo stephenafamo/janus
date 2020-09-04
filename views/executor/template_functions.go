@@ -9,9 +9,12 @@ import (
 )
 
 var funcMap = template.FuncMap{
-	"ToUpper": strings.ToUpper,
-	"ToLower": strings.ToLower,
-	"ToTitle": strings.Title,
+	"ToUpper":    strings.ToUpper,
+	"ToLower":    strings.ToLower,
+	"ToTitle":    strings.Title,
+	"Join":       strings.Join,
+	"TrimPrefix": strings.TrimPrefix,
+	"TrimSuffix": strings.TrimSuffix,
 	"Year": func() int {
 		year, _, _ := time.Now().Date()
 		return year

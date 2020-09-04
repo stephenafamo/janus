@@ -7,9 +7,9 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/go-chi/chi/middleware"
+	"github.com/spf13/afero"
 	"github.com/stephenafamo/janus/auth"
 	"github.com/stephenafamo/janus/middlewares"
-	"github.com/stephenafamo/janus/store"
 	"github.com/stephenafamo/janus/views/executor"
 )
 
@@ -31,7 +31,7 @@ var CSRFMiddleware middlewares.CSRF = middlewares.Nosurf{}
 type Broker struct {
 	Domains   []string
 	Templates executor.Executor
-	Store     store.Store
+	Store     afero.Fs
 	Assets    http.FileSystem
 	Auth      auth.Authenticator
 
@@ -55,7 +55,7 @@ func (b *Broker) SetTemplates(t executor.Executor) {
 }
 
 // SetStore for our handler
-func (b *Broker) SetStore(s store.Store) {
+func (b *Broker) SetStore(s afero.Fs) {
 	b.Store = s
 }
 
@@ -89,7 +89,7 @@ func (b Broker) RecommendedMiddlewares() []mid {
 		middleware.Recoverer,
 		gziphandler.GzipHandler,
 		middlewares.CORSMiddleware(b.Domains),
-		CSRFMiddleware.Middleware,
+		// CSRFMiddleware.Middleware,
 	}
 
 	if b.Auth != nil {

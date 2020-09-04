@@ -2,7 +2,6 @@ package migrator
 
 import (
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -24,8 +23,6 @@ func Migrate(m Interface, action string) error {
 	if err != nil {
 		return fmt.Errorf("Could not carry out the %q action: %w", action, err)
 	}
-
-	log.Printf("Successfully carried out the %q action", action)
 
 	return nil
 }

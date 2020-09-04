@@ -37,18 +37,14 @@ func (f FileStore) FileExists(path string) bool {
 
 	_, err := os.Stat(filename)
 
-	if os.IsNotExist(err) {
-		return false // files does not exist
-	}
-
-	return true
+	return !os.IsNotExist(err)
 }
 
 // AddFile adds a file to the store
 func (f FileStore) AddFile(path string, file io.Reader) error {
 	var err error
 
-	if f.FileExists(path) != false {
+	if f.FileExists(path) {
 		return errors.New("file: '" + path + "' already exists")
 	}
 
@@ -70,7 +66,7 @@ func (f FileStore) AddFile(path string, file io.Reader) error {
 func (f FileStore) UpdateFile(path string, file io.Reader) error {
 	var err error
 
-	if f.FileExists(path) != true {
+	if !f.FileExists(path) {
 		return errors.New("file: '" + path + "' does not exists")
 	}
 
