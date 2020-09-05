@@ -1,6 +1,9 @@
 package monitor
 
-import "net/http"
+import (
+	"net/http"
+	"time"
+)
 
 type ctxKey string
 
@@ -12,6 +15,7 @@ type Monitor interface {
 	Middleware(http.Handler) http.Handler
 	CaptureMessage(string)
 	CaptureException(error)
+	Flush(timeout time.Duration)
 }
 
 type Scope interface {

@@ -3,6 +3,7 @@ package sentry
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/stephenafamo/janus/monitor"
@@ -42,6 +43,10 @@ func (s Sentry) CaptureMessage(msg string) {
 
 func (s Sentry) CaptureException(err error) {
 	s.Hub.CaptureException(err)
+}
+
+func (s Sentry) Flush(timeout time.Duration) {
+	s.Hub.Flush(timeout)
 }
 
 type SentryScope struct {
