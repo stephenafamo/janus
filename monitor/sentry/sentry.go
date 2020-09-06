@@ -82,18 +82,25 @@ func (sli LoggingIntegration) SetupOnce(client *sentry.Client) {
 
 func (sli LoggingIntegration) processor(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
 	sli.Logger.Printf("\n%s", event.Message)
-	for _, exception := range event.Exception {
+
+	// print only the last exception
+	if len(event.Exception) > 0 {
+		exception := event.Exception[len(event.Exception)-1]
 		// Print the error message
 		sli.Logger.Printf("\n%s", exception.Value)
 
 		// Print the user details
-		sli.Logger.Printf("\nUser: Email %q, ID %q, IPAddress %q, Username %q",
-			event.User.Email, event.User.ID, event.User.IPAddress, event.User.Username)
+		if event.User != (sentry.User{}) {
+			sli.Logger.Printf("\nUser: Email %q, ID %q, IPAddress %q, Username %q",
+				event.User.Email, event.User.ID, event.User.IPAddress, event.User.Username)
+		}
 
 		// Print the tags
-		sli.Logger.Printf("\nTags:")
-		for key, val := range event.Tags {
-			sli.Logger.Printf("%s=%s\n", key, val)
+		if len(event.Tags) > 0 {
+			sli.Logger.Printf("\nTags:")
+			for key, val := range event.Tags {
+				sli.Logger.Printf("%s=%s\n", key, val)
+			}
 		}
 
 		// Print some extra lines for readability
