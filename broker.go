@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stephenafamo/janus/auth"
 	"github.com/stephenafamo/janus/middlewares"
+	"github.com/stephenafamo/janus/monitor"
 	"github.com/stephenafamo/janus/views/executor"
 )
 
@@ -30,6 +31,7 @@ type Broker struct {
 	Store     afero.Fs
 	Assets    http.FileSystem
 	Auth      auth.Authenticator
+	Monitor   monitor.Monitor
 
 	CSRFMiddleware middlewares.CSRF
 }
@@ -85,6 +87,7 @@ func (b Broker) RecommendedMiddlewares() []mid {
 		middleware.Recoverer,
 		gziphandler.GzipHandler,
 		middlewares.CORSMiddleware(b.Domains),
+		b.Monitor.Middleware,
 	}
 
 	if b.CSRFMiddleware != nil {
