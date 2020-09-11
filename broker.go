@@ -22,10 +22,6 @@ type logger interface {
 // Logger to print lgos
 var Logger logger = log.New(os.Stderr, "", log.LstdFlags)
 
-// CSRFMiddleware is the middleware that will be returned in c.RecommnededMiddlewares
-// It is exported to allow external change to the CSRF middleware
-var CSRFMiddleware middlewares.CSRF = middlewares.Nosurf{}
-
 // Broker contains all our routes and handlers and can return a handler
 // for our http.Server
 type Broker struct {
@@ -35,7 +31,7 @@ type Broker struct {
 	Assets    http.FileSystem
 	Auth      auth.Authenticator
 
-	csrfMiddleware middlewares.CSRF
+	CSRFMiddleware middlewares.CSRF
 }
 
 // WriteError is a helper to return an error
@@ -71,9 +67,9 @@ func (b *Broker) SetAuth(a auth.Authenticator) {
 
 // GetCSRFToken to use for subsequet requests
 func (b *Broker) GetCSRFToken(r *http.Request) string {
-	m := b.csrfMiddleware
+	m := b.CSRFMiddleware
 	if m == nil {
-		m = CSRFMiddleware
+		return ""
 	}
 	return m.Token(r)
 }
@@ -89,7 +85,10 @@ func (b Broker) RecommendedMiddlewares() []mid {
 		middleware.Recoverer,
 		gziphandler.GzipHandler,
 		middlewares.CORSMiddleware(b.Domains),
-		// CSRFMiddleware.Middleware,
+	}
+
+	if b.CSRFMiddleware != nil {
+		mids = append(mids, b.CSRFMiddleware.Middleware)
 	}
 
 	if b.Auth != nil {
