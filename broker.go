@@ -87,7 +87,10 @@ func (b Broker) RecommendedMiddlewares() []mid {
 		middleware.Recoverer,
 		gziphandler.GzipHandler,
 		middlewares.CORSMiddleware(b.Domains),
-		b.Monitor.Middleware,
+	}
+
+	if b.Monitor != nil {
+		mids = append(mids, b.Monitor.Middleware)
 	}
 
 	if b.CSRFMiddleware != nil {
