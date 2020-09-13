@@ -13,8 +13,8 @@ var CtxScope ctxKey = "scope"
 type Monitor interface {
 	// Any implementation must set the scope to the request context in the middleware
 	Middleware(http.Handler) http.Handler
-	CaptureMessage(string)
-	CaptureException(error)
+	CaptureMessage(msg string, tags map[string]string)
+	CaptureException(err error, tags map[string]string)
 	Flush(timeout time.Duration)
 }
 

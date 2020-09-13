@@ -37,12 +37,17 @@ func (s Sentry) Middleware(next http.Handler) http.Handler {
 
 }
 
-func (s Sentry) CaptureMessage(msg string) {
-	s.Hub.CaptureMessage(msg)
+func (s Sentry) CaptureMessage(msg string, tags map[string]string) {
+	s.Hub.WithScope(func(scope *sentry.Scope) {
+		scope.SetTags(tags)
+		s.Hub.CaptureMessage(msg)
+	})
 }
 
-func (s Sentry) CaptureException(err error) {
-	s.Hub.CaptureException(err)
+func (s Sentry) CaptureException(err error, tags map[string]string) {
+	s.Hub.WithScope(func(scope *sentry.Scope) {
+		s.Hub.CaptureException(err)
+	})
 }
 
 func (s Sentry) Flush(timeout time.Duration) {
