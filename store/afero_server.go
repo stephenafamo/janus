@@ -45,11 +45,11 @@ func (s *aferoServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(errCode), errCode)
 		return
 	}
-	defer file.Close()
 	if errors.Is(err, os.ErrNotExist) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
+	defer file.Close()
 
 	info, err := file.Stat()
 	if err != nil {
