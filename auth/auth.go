@@ -28,20 +28,4 @@ type Authenticator interface {
 	// Removes all cookies and session for the current user
 	// Used to manually log the user out
 	Flush(http.ResponseWriter) error
-
-	// Used to redirect something to the auth pages with a message
-	Redirect(rw http.ResponseWriter, req *http.Request, redir RedirectOptions) error
-}
-
-// RedirectOptions are the values needed for auth packages to redirect
-type RedirectOptions interface {
-	// Success & Failure are used to set Flash messages / JSON messages
-	// if set. They should be mutually exclusive.
-	Success() string
-	Failure() string
-	Path() string
-}
-
-// User represents a user
-type User interface {
 }

@@ -36,21 +36,6 @@ func (a Authboss) Flush(rw http.ResponseWriter) error {
 	return nil
 }
 
-// Redirect satisfies the Auth interface
-func (a Authboss) Redirect(rw http.ResponseWriter, req *http.Request, redir auth.RedirectOptions) error {
-	ro := authboss.RedirectOptions{
-		Success:          redir.Success(),
-		Failure:          redir.Failure(),
-		RedirectPath:     redir.Path(),
-		FollowRedirParam: true,
-	}
-	if err := a.Core.Redirector.Redirect(rw, req, ro); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Router satisfies the Auth interfaces
 func (a Authboss) Router() http.Handler {
 	return a.Config.Core.Router
