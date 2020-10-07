@@ -7,7 +7,6 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/go-chi/chi/middleware"
-	"github.com/spf13/afero"
 	"github.com/stephenafamo/janus/auth"
 	"github.com/stephenafamo/janus/middlewares"
 	"github.com/stephenafamo/janus/monitor"
@@ -28,7 +27,6 @@ var Logger logger = log.New(os.Stderr, "", log.LstdFlags)
 type Broker struct {
 	Domains   []string
 	Templates executor.Executor
-	Store     afero.Fs
 	Assets    http.FileSystem
 	Auth      auth.Authenticator
 	Monitor   monitor.Monitor
@@ -50,11 +48,6 @@ func (b *Broker) SetDomains(d []string) {
 // SetTemplates for our handler
 func (b *Broker) SetTemplates(t executor.Executor) {
 	b.Templates = t
-}
-
-// SetStore for our handler
-func (b *Broker) SetStore(s afero.Fs) {
-	b.Store = s
 }
 
 // SetAssets for our handler
