@@ -14,10 +14,12 @@ type CSRF interface {
 }
 
 // Nosurf satisfies the CSRF interface
-type Nosurf struct{}
+type Nosurf struct {
+	ExemptFunc func(r *http.Request) bool
+}
 
 // Middleware gets the csrf middleware
-func (Nosurf) Middleware(h http.Handler) http.Handler {
+func (n Nosurf) Middleware(h http.Handler) http.Handler {
 	surfing := nosurf.New(h)
 	surfing.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Failed to validate XSRF Token:", nosurf.Reason(r))
@@ -26,6 +28,10 @@ func (Nosurf) Middleware(h http.Handler) http.Handler {
 
 	// necessary so we don't get duplicate cookies which makes the validation fail in some cases
 	surfing.SetBaseCookie(http.Cookie{Path: "/", MaxAge: nosurf.MaxAge})
+
+	if n.ExemptFunc != nil {
+		surfing.ExemptFunc(n.ExemptFunc)
+	}
 
 	return surfing
 }
