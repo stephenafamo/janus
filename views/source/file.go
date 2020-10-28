@@ -1,6 +1,7 @@
 package source
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -52,6 +53,16 @@ func (p FileTemplates) Walk(walkFunc func(string, http.File) error) error {
 			cleanPath = strings.TrimSuffix(cleanPath, p.Suffix)
 		}
 
-		return walkFunc(cleanPath, file)
+		err = walkFunc(cleanPath, file)
+		if err != nil {
+			return fmt.Errorf("error in walkFunc: %w", err)
+		}
+
+		err = file.Close()
+		if err != nil {
+			return fmt.Errorf("could not close file: %w", err)
+		}
+
+		return nil
 	})
 }
