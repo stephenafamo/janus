@@ -19,6 +19,13 @@ var funcMap = template.FuncMap{
 		year, _, _ := time.Now().Date()
 		return year
 	},
+	"Add": func(vals ...float64) float64 {
+		var total float64
+		for _, v := range vals {
+			total += v
+		}
+		return total
+	},
 	"divFloat": func(a, b float64) float64 {
 		return a / b
 	},
