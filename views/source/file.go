@@ -46,6 +46,9 @@ func (p FileTemplates) Walk(walkFunc func(string, http.File) error) error {
 			return err2
 		}
 
+		// Change path to use forward slashes
+		path = filepath.ToSlash(path)
+
 		dirPrefix := filepath.Clean(p.Root) + "/"
 
 		cleanPath := strings.TrimPrefix(path, dirPrefix)

@@ -24,7 +24,7 @@ func (r Renderer) Load(names ...string) error {
 func (r Renderer) Render(ctx context.Context, page string, data authboss.HTMLData) (output []byte, contentType string, err error) {
 	var b bytes.Buffer
 
-	err = r.Templates.Render(&b, filepath.Join(r.Base, page), data)
+	err = r.Templates.Render(&b, filepath.ToSlash(filepath.Join(r.Base, page)), data)
 	if err != nil {
 		return
 	}
