@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
+	"sync"
 
 	"github.com/stephenafamo/janus/views/source"
 )
@@ -14,6 +15,7 @@ import (
 type Hot struct {
 	*template.Template
 	files source.Templates
+	mu    sync.Mutex
 }
 
 // NewHot returns a template executor
@@ -24,7 +26,7 @@ func NewHot(tpls source.Templates, funcs template.FuncMap) (*Hot, error) {
 
 	t := &Hot{Template: newTemplate(funcs), files: tpls}
 
-	err := loadTemplates(t, tpls)
+	err := t.loadFiles()
 	if err != nil {
 		return t, err
 	}
@@ -33,12 +35,12 @@ func NewHot(tpls source.Templates, funcs template.FuncMap) (*Hot, error) {
 }
 
 // Exists checks for the presence of a template
-func (h Hot) Exists(name string) bool {
+func (h *Hot) Exists(name string) bool {
 	return h.Lookup(name) != nil
 }
 
 // Add adds a new template to the executor
-func (h Hot) Add(name string, data io.Reader) error {
+func (h *Hot) Add(name string, data io.Reader) error {
 
 	byts, err := ioutil.ReadAll(data)
 	if err != nil {
@@ -56,7 +58,7 @@ func (h Hot) Add(name string, data io.Reader) error {
 
 // Render implements the templateExecutor interface
 func (h *Hot) Render(wr io.Writer, name string, data interface{}) error {
-	err := loadTemplates(h, h.files)
+	err := h.loadFiles()
 	if err != nil {
 		return err
 	}
@@ -67,4 +69,18 @@ func (h *Hot) Render(wr io.Writer, name string, data interface{}) error {
 	}
 
 	return d.ExecuteTemplate(wr, name, data)
+}
+
+func (h *Hot) loadFiles() error {
+
+	// So we do not reload files at the same time
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	err := loadTemplates(h, h.files)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
