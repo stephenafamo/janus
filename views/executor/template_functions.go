@@ -56,6 +56,23 @@ var funcMap = template.FuncMap{
 		}
 		return Items
 	},
+	"URLString": func(u url.URL) string {
+		return u.String()
+	},
+	"SetQuery": func(aURL url.URL, key, val string) url.URL {
+		vals := aURL.Query()
+		vals.Set(key, val)
+
+		aURL.RawQuery = vals.Encode()
+		return aURL
+	},
+	"RemoveQuery": func(aURL url.URL, key string) url.URL {
+		vals := aURL.Query()
+		vals.Del(key)
+
+		aURL.RawQuery = vals.Encode()
+		return aURL
+	},
 	"nextURL": func(url url.URL, after string) (string, error) {
 		aURL := url // make a copy
 		vals := aURL.Query()
