@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/NYTimes/gziphandler"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/stephenafamo/janus/auth"
 	"github.com/stephenafamo/janus/middlewares"
 	"github.com/stephenafamo/janus/monitor"

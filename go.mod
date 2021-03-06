@@ -5,7 +5,8 @@ go 1.14
 require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/getsentry/sentry-go v0.7.0
-	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/go-chi/chi v4.1.2+incompatible // indirect
+	github.com/go-chi/chi/v5 v5.0.0
 	github.com/go-chi/cors v1.1.1
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/justinas/nosurf v1.1.0
