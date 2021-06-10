@@ -13,6 +13,11 @@ type Sentry struct {
 	Hub *sentry.Hub
 }
 
+func (s Sentry) Recover(ctx context.Context, cause interface{}) error {
+	s.Hub.RecoverWithContext(ctx, cause)
+	return nil
+}
+
 func (s Sentry) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s.Hub.WithScope(func(scope *sentry.Scope) {
@@ -20,13 +25,13 @@ func (s Sentry) Middleware(next http.Handler) http.Handler {
 			scope.SetRequest(r)
 
 			defer func() {
-				if err := recover(); err != nil {
-					s.Hub.RecoverWithContext(
-						context.WithValue(r.Context(), sentry.RequestContextKey, r),
-						err,
-					)
+				if cause := recover(); cause != nil {
+					s.Hub.RecoverWithContext(r.Context(), cause)
 				}
 			}()
+
+			r = r.WithContext(context.WithValue(r.Context(),
+				sentry.RequestContextKey, r))
 
 			r = r.WithContext(context.WithValue(r.Context(),
 				monitor.CtxScope, SentryScope{scope: scope}))

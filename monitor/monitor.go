@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"context"
 	"net/http"
 	"time"
 )
@@ -15,6 +16,7 @@ type Monitor interface {
 	Middleware(http.Handler) http.Handler
 	CaptureMessage(msg string, tags map[string]string)
 	CaptureException(err error, tags map[string]string)
+	Recover(ctx context.Context, cause interface{}) error
 	Flush(timeout time.Duration)
 }
 
