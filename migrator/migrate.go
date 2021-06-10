@@ -6,16 +6,14 @@ import (
 )
 
 // Migrate runs the migrations from files in the migrations folder (relative)
-func Migrate(m Interface, action string) error {
+func Migrate(m Interface, action string, limit int) error {
 	var err error
 
 	switch strings.ToLower(action) {
-	case "drop":
-		err = m.Drop()
 	case "down":
-		err = m.Down()
+		err = m.Down(limit)
 	case "up":
-		err = m.Up()
+		err = m.Up(limit)
 	default:
 		err = fmt.Errorf("Unknown migration action specified")
 	}

@@ -6,9 +6,8 @@ import (
 
 // Interface in the main Migration tool.
 type Interface interface {
-	Up() error
-	Down() error
-	Drop() error
+	Up(limit int) error
+	Down(limit int) error
 }
 
 // Migrator is a migrator
@@ -54,7 +53,7 @@ func (m *Migrator) do(cmd *cobra.Command, args []string) error {
 		action = args[0]
 	}
 
-	err := Migrate(m.m, action)
+	err := Migrate(m.m, action, 0)
 	if err != nil {
 		return err
 	}
