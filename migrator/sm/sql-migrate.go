@@ -8,7 +8,11 @@ import (
 )
 
 func Get(db *sql.DB, dialect string, source migrate.MigrationSource) migrator.Interface {
-	return sm{}
+	return sm{
+		db:      db,
+		dialect: dialect,
+		source:  source,
+	}
 }
 
 type sm struct {
