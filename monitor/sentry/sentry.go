@@ -51,6 +51,7 @@ func (s Sentry) CaptureMessage(msg string, tags map[string]string) {
 
 func (s Sentry) CaptureException(err error, tags map[string]string) {
 	s.Hub.WithScope(func(scope *sentry.Scope) {
+		scope.SetTags(tags)
 		s.Hub.CaptureException(err)
 	})
 }
