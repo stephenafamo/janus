@@ -21,12 +21,10 @@ type sm struct {
 	source  migrate.MigrationSource
 }
 
-func (s sm) Up(limit int) error {
-	_, err := migrate.ExecMax(s.db, s.dialect, s.source, migrate.Up, limit)
-	return err
+func (s sm) Up(limit int) (int, error) {
+	return migrate.ExecMax(s.db, s.dialect, s.source, migrate.Up, limit)
 }
 
-func (s sm) Down(limit int) error {
-	_, err := migrate.ExecMax(s.db, s.dialect, s.source, migrate.Down, limit)
-	return err
+func (s sm) Down(limit int) (int, error) {
+	return migrate.ExecMax(s.db, s.dialect, s.source, migrate.Down, limit)
 }
