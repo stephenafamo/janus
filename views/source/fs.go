@@ -3,23 +3,20 @@ package source
 import (
 	"fmt"
 	"io/fs"
-	"os"
 	"strings"
-
-	"github.com/spf13/afero"
 )
 
 // AferoTemplates is an implementation of the Templates interface
-// based on afero
-type AferoTemplates struct {
-	Store      afero.Fs
+// based on aferto
+type FsTemplates struct {
+	FS         fs.FS
 	Suffix     string // required suffix for template files
 	TrimSuffix bool   // should suffix be removed from template names?
 }
 
 // Walk imiplements the Templates interface
-func (p AferoTemplates) Walk(walkFunc func(string, fs.File) error) error {
-	return afero.Walk(p.Store, ".", func(path string, info os.FileInfo, err error) error {
+func (p FsTemplates) Walk(walkFunc func(string, fs.File) error) error {
+	return fs.WalkDir(p.FS, ".", func(path string, info fs.DirEntry, err error) error {
 
 		// Ignore hidden files (files that start with a period)
 		if strings.HasPrefix(info.Name(), ".") {
@@ -35,7 +32,7 @@ func (p AferoTemplates) Walk(walkFunc func(string, fs.File) error) error {
 			return err
 		}
 
-		file, err2 := p.Store.Open(path)
+		file, err2 := p.FS.Open(path)
 		if err2 != nil {
 			return err2
 		}

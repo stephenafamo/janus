@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"mime"
@@ -11,24 +12,22 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/spf13/afero"
 )
 
 type ctxKey string
 
 const StoreDirKey ctxKey = "storeDir"
 
-// AferoServer returns a fileserver from the store
-func AferoServer(s afero.Fs) http.Handler {
-	return &aferoServer{s}
+// FSServer returns a fileserver from the store
+func FSServer(s fs.FS) http.Handler {
+	return &fsServer{s}
 }
 
-type aferoServer struct {
-	Store afero.Fs
+type fsServer struct {
+	Store fs.FS
 }
 
-func (s *aferoServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *fsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	errCode := http.StatusInternalServerError
 
 	path := strings.TrimPrefix(r.URL.Path, "/") // remove leading slash if present

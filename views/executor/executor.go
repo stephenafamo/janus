@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"net/http"
+	"io/fs"
 
 	"github.com/stephenafamo/janus/views/source"
 )
@@ -23,7 +23,7 @@ type Executor interface {
 
 // helper function to load templates into an executor
 func loadTemplates(tpl Executor, t source.Templates) error {
-	return t.Walk(func(path string, file http.File) error {
+	return t.Walk(func(path string, file fs.File) error {
 		if file == nil {
 			return nil
 		}
