@@ -22,6 +22,7 @@ func (s Sentry) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s.Hub.WithScope(func(scope *sentry.Scope) {
 
+			sentry.StartSpan(r.Context(), "request", sentry.ContinueFromRequest(r))
 			scope.SetRequest(r)
 
 			defer func() {
@@ -29,6 +30,9 @@ func (s Sentry) Middleware(next http.Handler) http.Handler {
 					s.Hub.RecoverWithContext(r.Context(), cause)
 				}
 			}()
+
+			r = r.WithContext(context.WithValue(r.Context(),
+				sentry.HubContextKey, s.Hub))
 
 			r = r.WithContext(context.WithValue(r.Context(),
 				sentry.RequestContextKey, r))
@@ -40,6 +44,10 @@ func (s Sentry) Middleware(next http.Handler) http.Handler {
 		})
 	})
 
+}
+
+func (s Sentry) StartSpan(ctx context.Context, name string) monitor.Span {
+	return sentry.StartSpan(ctx, name)
 }
 
 func (s Sentry) CaptureMessage(msg string, tags map[string]string) {
