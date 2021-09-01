@@ -22,11 +22,12 @@ type Monitor interface {
 }
 
 type Scope interface {
+	SetTransactionName(name string)
 	SetTag(key, value string)
 	SetUser(id, username, email string)
 }
 
 type Span interface {
-	SetTag(string, string)
+	SetTag(key string, value string)
 	Finish()
 }
