@@ -24,8 +24,10 @@ func (s Sentry) Middleware(next http.Handler) http.Handler {
 			sentry.HubContextKey, s.Hub))
 
 		s.Hub.WithScope(func(scope *sentry.Scope) {
-			sentry.StartSpan(r.Context(), "request",
-				sentry.ContinueFromRequest(r))
+			span := sentry.StartSpan(r.Context(), "request", sentry.ContinueFromRequest(r))
+			defer span.Finish()
+
+			r = r.WithContext(span.Context())
 
 			scope.SetRequest(r)
 
@@ -47,8 +49,9 @@ func (s Sentry) Middleware(next http.Handler) http.Handler {
 
 }
 
-func (s Sentry) StartSpan(ctx context.Context, name string) monitor.Span {
-	return sentry.StartSpan(ctx, name)
+func (s Sentry) StartSpan(ctx context.Context, name string) (context.Context, monitor.Span) {
+	span := sentry.StartSpan(ctx, name)
+	return span.Context(), span
 }
 
 func (s Sentry) CaptureMessage(msg string, tags map[string]string) {

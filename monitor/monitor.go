@@ -14,7 +14,7 @@ var CtxScope ctxKey = "scope"
 type Monitor interface {
 	// Any implementation must set the scope to the request context in the middleware
 	Middleware(http.Handler) http.Handler
-	StartSpan(context.Context, string) Span
+	StartSpan(context.Context, string) (context.Context, Span)
 	CaptureMessage(msg string, tags map[string]string)
 	CaptureException(err error, tags map[string]string)
 	Recover(ctx context.Context, cause interface{}) error
