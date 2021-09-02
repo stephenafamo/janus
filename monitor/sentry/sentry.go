@@ -24,7 +24,12 @@ func (s Sentry) Middleware(next http.Handler) http.Handler {
 			sentry.HubContextKey, s.Hub))
 
 		s.Hub.WithScope(func(scope *sentry.Scope) {
-			span := sentry.StartSpan(r.Context(), "request", sentry.ContinueFromRequest(r))
+			span := sentry.StartSpan(
+				r.Context(),
+				"request",
+				sentry.TransactionName(r.URL.Path),
+				sentry.ContinueFromRequest(r),
+			)
 			defer span.Finish()
 
 			r = r.WithContext(span.Context())
