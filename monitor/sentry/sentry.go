@@ -20,8 +20,8 @@ func (s Sentry) Recover(ctx context.Context, cause interface{}) error {
 
 func (s Sentry) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r = r.WithContext(context.WithValue(r.Context(),
-			sentry.HubContextKey, s.Hub))
+		r = r.WithContext(context.WithValue(r.Context(), sentry.HubContextKey, s.Hub))
+		r = r.WithContext(context.WithValue(r.Context(), monitor.CtxRequest, r))
 
 		s.Hub.WithScope(func(scope *sentry.Scope) {
 			span := sentry.StartSpan(

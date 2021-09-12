@@ -10,6 +10,7 @@ type ctxKey string
 
 // CtxUserID is the context key for the scope
 var CtxScope ctxKey = "scope"
+var CtxRequest ctxKey = "request"
 
 type Monitor interface {
 	// Any implementation must set the scope to the request context in the middleware
