@@ -24,6 +24,8 @@ func (s Sentry) Middleware(next http.Handler) http.Handler {
 		r = r.WithContext(context.WithValue(r.Context(), monitor.CtxRequest, r))
 
 		s.Hub.WithScope(func(scope *sentry.Scope) {
+			scope.SetTransaction(r.URL.Path)
+
 			span := sentry.StartSpan(
 				r.Context(),
 				"request",
