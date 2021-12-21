@@ -13,9 +13,8 @@ type Sentry struct {
 	Hub *sentry.Hub
 }
 
-func (s Sentry) Recover(ctx context.Context, cause interface{}) error {
+func (s Sentry) Recover(ctx context.Context, cause interface{}) {
 	s.Hub.RecoverWithContext(ctx, cause)
-	return nil
 }
 
 func (s Sentry) Middleware(next http.Handler) http.Handler {
