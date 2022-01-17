@@ -10,8 +10,8 @@ import (
 // based on aferto
 type FsTemplates struct {
 	FS         fs.FS
-	Suffix     string // required suffix for template files
-	TrimSuffix bool   // should suffix be removed from template names?
+	Suffixes   []string // required suffixes for template files
+	TrimSuffix bool     // should suffix be removed from template names?
 }
 
 // Walk imiplements the Templates interface
@@ -23,9 +23,17 @@ func (p FsTemplates) Walk(walkFunc func(string, fs.File) error) error {
 			return nil
 		}
 
-		// Skip files that do not have the required suffix
-		if !strings.HasSuffix(path, p.Suffix) {
-			return nil
+		var suffix string
+		for k, s := range p.Suffixes {
+			if strings.HasSuffix(path, s) {
+				suffix = s
+				break
+			}
+
+			// Skip files that do not have any of the required suffixes
+			if k == len(p.Suffixes)-1 {
+				return nil
+			}
 		}
 
 		if err != nil {
@@ -39,7 +47,7 @@ func (p FsTemplates) Walk(walkFunc func(string, fs.File) error) error {
 		defer file.Close()
 
 		if p.TrimSuffix {
-			path = strings.TrimSuffix(path, p.Suffix)
+			path = strings.TrimSuffix(path, suffix)
 		}
 
 		err = walkFunc(path, file)
