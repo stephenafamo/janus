@@ -9,7 +9,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.0
 	github.com/go-chi/cors v1.1.1
 	github.com/golang-migrate/migrate/v4 v4.14.1
-	github.com/justinas/nosurf v1.1.0
+	github.com/justinas/nosurf v1.1.1
 	github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v1.0.0
