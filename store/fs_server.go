@@ -28,8 +28,14 @@ type fsServer struct {
 }
 
 func (s *fsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	errCode := http.StatusInternalServerError
+	switch r.Method {
+	case http.MethodGet, http.MethodHead:
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
 
+	errCode := http.StatusInternalServerError
 	path := strings.TrimPrefix(r.URL.Path, "/") // remove leading slash if present
 
 	// Add directory prefix if necessary
@@ -88,7 +94,7 @@ func (s *fsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", ctype)
 	w.WriteHeader(http.StatusOK)
 
-	if r.Method != "HEAD" {
+	if r.Method != http.MethodHead {
 		_, err = w.Write(fileBytes)
 		if err != nil {
 			log.Printf("ERROR: problems writing file content to http response writer: %v", err)
