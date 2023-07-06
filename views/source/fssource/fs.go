@@ -1,4 +1,4 @@
-package source
+package fssource
 
 import (
 	"fmt"
@@ -6,18 +6,17 @@ import (
 	"strings"
 )
 
-// AferoTemplates is an implementation of the Templates interface
-// based on aferto
-type FsTemplates struct {
+// Templates is an implementation of the source.Templates interface
+// based on fs.FS
+type Templates struct {
 	FS         fs.FS
 	Suffixes   []string // required suffixes for template files
 	TrimSuffix bool     // should suffix be removed from template names?
 }
 
 // Walk imiplements the Templates interface
-func (p FsTemplates) Walk(walkFunc func(string, fs.File) error) error {
+func (p Templates) Walk(walkFunc func(string, fs.File) error) error {
 	return fs.WalkDir(p.FS, ".", func(path string, info fs.DirEntry, err error) error {
-
 		// Ignore hidden files (files that start with a period)
 		if strings.HasPrefix(info.Name(), ".") {
 			return nil
