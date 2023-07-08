@@ -1,17 +1,9 @@
 package store
 
 import (
-	"bytes"
-	"errors"
-	"io"
 	"io/fs"
-	"io/ioutil"
-	"log"
-	"mime"
 	"net/http"
-	"os"
 	"path/filepath"
-	"strings"
 )
 
 type ctxKey string
@@ -20,11 +12,12 @@ const StoreDirKey ctxKey = "storeDir"
 
 // FSServer returns a fileserver from the store
 func FSServer(s fs.FS) http.Handler {
-	return &fsServer{s}
+	h := http.FileServer(http.FS(noDirFS{s}))
+	return &fsServer{h}
 }
 
 type fsServer struct {
-	Store fs.FS
+	handler http.Handler
 }
 
 func (s *fsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -35,69 +28,33 @@ func (s *fsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errCode := http.StatusInternalServerError
-	path := strings.TrimPrefix(r.URL.Path, "/") // remove leading slash if present
-
 	// Add directory prefix if necessary
 	storeDir, ok := r.Context().Value(StoreDirKey).(string)
 	if ok && storeDir != "" {
-		path = filepath.Join(storeDir, path)
+		r.URL.Path = filepath.Join(storeDir, r.URL.Path)
 	}
 
-	file, err := s.Store.Open(path)
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		log.Printf("ERROR: Unable to get file %v", err)
-		http.Error(w, http.StatusText(errCode), errCode)
-		return
-	}
-	if errors.Is(err, os.ErrNotExist) {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
-	defer file.Close()
+	s.handler.ServeHTTP(w, r)
+}
 
-	info, err := file.Stat()
+type noDirFS struct {
+	wrapped fs.FS
+}
+
+func (n noDirFS) Open(name string) (fs.File, error) {
+	f, err := n.wrapped.Open(name)
 	if err != nil {
-		log.Printf("ERROR: Unable to get file info %v", err)
-		http.Error(w, http.StatusText(errCode), errCode)
-		return
+		return nil, err
 	}
+
+	info, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+
 	if info.IsDir() {
-		log.Printf("INFO: attempting to read storage directory")
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
+		return nil, fs.ErrNotExist
 	}
 
-	fileBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		log.Printf("ERROR: Unable to read file %v", err)
-		http.Error(w, http.StatusText(errCode), errCode)
-		return
-	}
-
-	// If Content-Type isn't set, use the file's extension to find it, but
-	// if the Content-Type is unset explicitly, do not sniff the type.
-	ctypes, haveType := w.Header()["Content-Type"]
-	var ctype string
-	if !haveType {
-		ctype = mime.TypeByExtension(filepath.Ext(path))
-		if ctype == "" {
-			// read a chunk to decide between utf-8 text and binary
-			var buf [512]byte
-			n, _ := io.ReadFull(bytes.NewBuffer(fileBytes), buf[:])
-			ctype = http.DetectContentType(buf[:n])
-		}
-	} else if len(ctypes) > 0 {
-		ctype = ctypes[0]
-	}
-
-	w.Header().Set("Content-Type", ctype)
-	w.WriteHeader(http.StatusOK)
-
-	if r.Method != http.MethodHead {
-		_, err = w.Write(fileBytes)
-		if err != nil {
-			log.Printf("ERROR: problems writing file content to http response writer: %v", err)
-		}
-	}
+	return f, nil
 }
