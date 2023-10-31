@@ -26,7 +26,7 @@ func (g gm) Up(limit int) (int, error) {
 	} else {
 		err = g.m.Steps(limit)
 	}
-	if err != nil {
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return 0, err
 	}
 
@@ -49,7 +49,7 @@ func (g gm) Down(limit int) (int, error) {
 	} else {
 		err = g.m.Steps(-1 * limit)
 	}
-	if err != nil {
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return 0, err
 	}
 
