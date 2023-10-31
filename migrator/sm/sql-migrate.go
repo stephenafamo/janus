@@ -8,7 +8,7 @@ import (
 	"github.com/stephenafamo/janus/migrator"
 )
 
-func Get(db *sql.DB, dialect string, source migrate.MigrationSource) migrator.Interface {
+func Get(db *sql.DB, dialect string, source migrate.MigrationSource) migrator.Migrator {
 	return sm{
 		db:      db,
 		dialect: dialect,

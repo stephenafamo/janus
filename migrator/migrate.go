@@ -6,8 +6,19 @@ import (
 	"strings"
 )
 
+// Migrator in the main Migration tool.
+type Migrator interface {
+	Up(ctx context.Context, limit int) (int, error)
+	Down(ctx context.Context, limit int) (int, error)
+}
+
+// Interface is a migrator
+//
+// Deprecated: Use Migrator instead
+type Interface = Migrator
+
 // Migrate runs the migrations with the given implementation
-func Migrate(ctx context.Context, m Interface, action string, limit int) (int, error) {
+func Migrate(ctx context.Context, m Migrator, action string, limit int) (int, error) {
 	var count int
 	var err error
 

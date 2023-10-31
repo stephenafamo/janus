@@ -8,7 +8,7 @@ import (
 	"github.com/stephenafamo/janus/migrator"
 )
 
-func Get(m *migrate.Migrate) migrator.Interface {
+func Get(m *migrate.Migrate) migrator.Migrator {
 	return gm{m}
 }
 
