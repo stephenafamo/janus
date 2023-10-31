@@ -1,6 +1,7 @@
 package sm
 
 import (
+	"context"
 	"database/sql"
 
 	migrate "github.com/rubenv/sql-migrate"
@@ -21,10 +22,10 @@ type sm struct {
 	source  migrate.MigrationSource
 }
 
-func (s sm) Up(limit int) (int, error) {
-	return migrate.ExecMax(s.db, s.dialect, s.source, migrate.Up, limit)
+func (s sm) Up(ctx context.Context, limit int) (int, error) {
+	return migrate.ExecMaxContext(ctx, s.db, s.dialect, s.source, migrate.Up, limit)
 }
 
-func (s sm) Down(limit int) (int, error) {
-	return migrate.ExecMax(s.db, s.dialect, s.source, migrate.Down, limit)
+func (s sm) Down(ctx context.Context, limit int) (int, error) {
+	return migrate.ExecMaxContext(ctx, s.db, s.dialect, s.source, migrate.Down, limit)
 }

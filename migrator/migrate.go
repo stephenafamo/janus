@@ -1,20 +1,21 @@
 package migrator
 
 import (
+	"context"
 	"fmt"
 	"strings"
 )
 
 // Migrate runs the migrations with the given implementation
-func Migrate(m Interface, action string, limit int) (int, error) {
+func Migrate(ctx context.Context, m Interface, action string, limit int) (int, error) {
 	var count int
 	var err error
 
 	switch strings.ToLower(action) {
 	case "down":
-		count, err = m.Down(limit)
+		count, err = m.Down(ctx, limit)
 	case "up":
-		count, err = m.Up(limit)
+		count, err = m.Up(ctx, limit)
 	default:
 		err = fmt.Errorf("Unknown migration action specified")
 	}

@@ -1,6 +1,7 @@
 package gm
 
 import (
+	"context"
 	"errors"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -15,7 +16,7 @@ type gm struct {
 	m *migrate.Migrate
 }
 
-func (g gm) Up(limit int) (int, error) {
+func (g gm) Up(_ context.Context, limit int) (int, error) {
 	prev, _, err := g.m.Version()
 	if err != nil && !errors.Is(err, migrate.ErrNilVersion) {
 		return 0, err
@@ -38,7 +39,7 @@ func (g gm) Up(limit int) (int, error) {
 	return int(current - prev), nil
 }
 
-func (g gm) Down(limit int) (int, error) {
+func (g gm) Down(_ context.Context, limit int) (int, error) {
 	prev, _, err := g.m.Version()
 	if err != nil && !errors.Is(err, migrate.ErrNilVersion) {
 		return 0, err

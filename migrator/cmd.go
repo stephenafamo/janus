@@ -1,9 +1,11 @@
 package migrator
 
+import "context"
+
 // Interface in the main Migration tool.
 type Interface interface {
-	Up(limit int) (int, error)
-	Down(limit int) (int, error)
+	Up(ctx context.Context, limit int) (int, error)
+	Down(ctx context.Context, limit int) (int, error)
 }
 
 // Migrator is a migrator
