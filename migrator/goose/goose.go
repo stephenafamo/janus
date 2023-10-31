@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"io/fs"
 	"math"
 
@@ -72,7 +71,6 @@ func (g impl) Down(ctx context.Context, limit int) (int, error) {
 	for i := 0; i < limit; i++ {
 		err := goose.DownContext(ctx, g.db, ".", g.options...)
 		if err != nil {
-			fmt.Println(err.Error())
 			if errors.Is(err, goose.ErrNoCurrentVersion) {
 				return i, nil
 			}
