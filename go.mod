@@ -1,6 +1,6 @@
 module github.com/stephenafamo/janus
 
-go 1.20
+go 1.23.0
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1
@@ -8,7 +8,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
-	github.com/justinas/nosurf v1.1.1
+	github.com/justinas/nosurf v1.2.0
 	github.com/pressly/goose/v3 v3.16.0
 	github.com/rubenv/sql-migrate v1.5.0
 	github.com/spf13/afero v1.9.5
