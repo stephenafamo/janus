@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/getsentry/sentry-go v0.25.0
-	github.com/go-chi/chi/v5 v5.0.8
+	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/cors v1.2.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/justinas/nosurf v1.2.0
