@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/stephenafamo/janus/views/executor"
-	"github.com/volatiletech/authboss/v3"
+	"github.com/aarondl/authboss/v3"
 )
 
 // Renderer sastisfies the authboss.Renderer interface using the executor

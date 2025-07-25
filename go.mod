@@ -4,6 +4,7 @@ go 1.23.0
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1
+	github.com/aarondl/authboss/v3 v3.5.2
 	github.com/getsentry/sentry-go v0.25.0
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/cors v1.2.1
@@ -13,7 +14,6 @@ require (
 	github.com/rubenv/sql-migrate v1.5.0
 	github.com/spf13/afero v1.9.5
 	github.com/stephenafamo/mailer v0.0.0-20220614171951-46ce34b56078
-	github.com/volatiletech/authboss/v3 v3.2.1
 )
 
 require (
@@ -31,12 +31,11 @@ require (
 	github.com/sethvargo/go-retry v0.2.4 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.36.0 // indirect
-	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/oauth2 v0.27.0 // indirect
-	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/crypto v0.40.0 // indirect
+	golang.org/x/oauth2 v0.30.0 // indirect
+	golang.org/x/sync v0.16.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/text v0.27.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect

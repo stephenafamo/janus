@@ -8,7 +8,7 @@ import (
 
 	"github.com/justinas/nosurf"
 	"github.com/stephenafamo/janus/auth"
-	"github.com/volatiletech/authboss/v3"
+	"github.com/aarondl/authboss/v3"
 )
 
 // GetCsrfToken gets the csrf token that authboss adds to HTMLData
@@ -17,7 +17,7 @@ var GetCsrfToken = func(r *http.Request) string {
 }
 
 // Authboss satisfies the Auth interface
-// Based on the excellent package github.com/volatiletech/authboss
+// Based on the excellent package github.com/aarondl/authboss
 type Authboss struct {
 	*authboss.Authboss
 

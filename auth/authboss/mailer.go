@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/stephenafamo/mailer"
-	"github.com/volatiletech/authboss/v3"
+	"github.com/aarondl/authboss/v3"
 )
 
 type Mailer struct {
