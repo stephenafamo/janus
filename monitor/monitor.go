@@ -20,7 +20,7 @@ type Monitor interface {
 	StartSpan(context.Context, string) (context.Context, Span)
 	CaptureMessage(msg string, tags map[string]string)
 	CaptureException(err error, tags map[string]string)
-	Recover(ctx context.Context, cause interface{})
+	Recover(ctx context.Context, cause any)
 	Flush(timeout time.Duration)
 }
 

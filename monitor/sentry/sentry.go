@@ -13,7 +13,7 @@ type Sentry struct {
 	Hub *sentry.Hub
 }
 
-func (s Sentry) Recover(ctx context.Context, cause interface{}) {
+func (s Sentry) Recover(ctx context.Context, cause any) {
 	s.Hub.RecoverWithContext(ctx, cause)
 }
 
@@ -94,7 +94,7 @@ func (s SentryScope) SetUser(id, username, email string) {
 type LoggingIntegration struct {
 	SupressErrors bool
 	Logger        interface {
-		Printf(format string, a ...interface{}) (n int, err error)
+		Printf(format string, a ...any) (n int, err error)
 	}
 }
 

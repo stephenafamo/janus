@@ -29,11 +29,11 @@ func Migrate(ctx context.Context, m Migrator, action string, limit int) (int, er
 	case "up":
 		count, err = m.Up(ctx, limit)
 	default:
-		err = fmt.Errorf("Unknown migration action specified")
+		err = fmt.Errorf("unknown migration action specified")
 	}
 
 	if err != nil {
-		return count, fmt.Errorf("Could not carry out the %q action: %w", action, err)
+		return count, fmt.Errorf("could not carry out the %q action: %w", action, err)
 	}
 
 	return count, nil
