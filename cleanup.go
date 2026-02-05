@@ -2,7 +2,9 @@ package janus
 
 import (
 	"context"
+	"errors"
 	"log/slog"
+	"sync"
 	"time"
 )
 
@@ -27,5 +29,22 @@ func Stop(ctx context.Context, timeout time.Duration, stop StopFunc) {
 			ctx, slog.LevelError, "error during cleanup",
 			slog.String("error", err.Error()),
 		)
+	}
+}
+
+func CombineStopFuncs(stops ...StopFunc) StopFunc {
+	return func(ctx context.Context) error {
+		var wg sync.WaitGroup
+		wg.Add(len(stops))
+
+		errs := make([]error, len(stops))
+		for i, stop := range stops {
+			go func(i int, stop StopFunc) {
+				defer wg.Done()
+				errs[i] = stop(ctx)
+			}(i, stop)
+		}
+
+		return errors.Join(errs...)
 	}
 }
