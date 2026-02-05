@@ -4,12 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os"
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
-	charmlog "github.com/charmbracelet/log"
 	"github.com/go-logr/logr"
 	slogstrict "github.com/go-swiss/slog-strict"
 	slogotel "github.com/remychantenay/slog-otel"
@@ -33,76 +30,37 @@ type Logger slogstrict.Logger
 
 type LogConfig struct {
 	Level             string `env:"LOG_LEVEL,default=info"`
-	ServiceName       string `env:"OTEL_SERVICE_NAME"`
 	EnableOtelLogging bool   `env:"ENABLE_OTEL_LOGGING"`
 }
 
-func NewLogger(ctx context.Context, cfg LogConfig) (slogstrict.Logger, janus.StopFunc, error) {
-	handler, cleanup, err := newHandler(ctx, cfg)
-	if err != nil {
-		return nil, nil, fmt.Errorf("creating log handler: %w", err)
+// NewLogger adds openTelemetry logging support if enabled via environment variable. It returns a slogstrict.Logger and a cleanup function to flush logs on shutdown.
+func NewLogger(ctx context.Context, cfg LogConfig, handler slog.Handler) (slogstrict.Logger, janus.StopFunc, error) {
+	cleanup := janus.NoopStopFunc
+
+	if cfg.EnableOtelLogging {
+		otelHandler, otelCleanup, err := getOtelHandler(ctx, cfg.Level)
+		if err != nil {
+			return nil, nil, fmt.Errorf("creating log handler: %w", err)
+		}
+
+		// Create a handler that sends log entries to both the terminal and sentry
+		// Replace with slog.MultiHandler in Go 1.26
+		handler = slogmulti.Fanout(handler, otelHandler)
+		cleanup = otelCleanup
 	}
 
 	// Add OpenTelemetry handler wrapper
+	// This adds trace and span IDs to log records automatically
 	handler = slogotel.OtelHandler{Next: handler, NoBaggage: true}
 
 	// Add Context handler wrapper
+	// This adds attributes from context to log records automatically
 	handler = newContextHandler(handler)
 
 	sl := slog.New(handler)
 	slog.SetDefault(sl)
 
 	return slogstrict.FromSlog(sl), cleanup, nil
-}
-
-func newHandler(ctx context.Context, cfg LogConfig) (slog.Handler, janus.StopFunc, error) {
-	level := new(slog.LevelVar)
-
-	switch strings.ToLower(cfg.Level) {
-	case "debug":
-		level.Set(slog.LevelDebug)
-	case "info":
-		level.Set(slog.LevelInfo)
-	case "warn":
-		level.Set(slog.LevelWarn)
-	case "error":
-		level.Set(slog.LevelError)
-	default:
-		level.Set(slog.LevelInfo)
-	}
-
-	// Our logger that writes to the terminal
-	terminalHandler := charmlog.NewWithOptions(os.Stdout, charmlog.Options{
-		Level:           charmlog.Level(level.Level()),
-		ReportTimestamp: true,
-		TimeFormat:      time.Stamp,
-	})
-
-	// Styles for the terminal logger
-	styles := charmlog.DefaultStyles()
-	styles.Timestamp = styles.Timestamp.Faint(true)
-	styles.Value = styles.Value.Foreground(lipgloss.Color("#66C2CD"))
-	terminalHandler.SetStyles(styles)
-
-	// If no OpenTelemetry logging is enabled, return the terminal handler
-	if !cfg.EnableOtelLogging {
-		return terminalHandler, janus.NoopStopFunc, nil
-	}
-
-	if cfg.ServiceName == "" {
-		return nil, nil, fmt.Errorf("OTEL_SERVICE_NAME is required for OpenTelemetry logging")
-	}
-
-	otelHandler, cleanup, err := getOtelHandler(ctx, level.Level())
-	if err != nil {
-		return nil, nil, fmt.Errorf("creating OpenTelemetry handler: %w", err)
-	}
-
-	// Create a handler that sends log entries to both the terminal and sentry
-	return slogmulti.Fanout(
-		terminalHandler,
-		otelHandler,
-	), cleanup, nil
 }
 
 // ----------------------------------------------------------------------------
@@ -157,13 +115,27 @@ func (o otelSeverity) Severity() log.Severity {
 	return o.severity
 }
 
-func getOtelHandler(ctx context.Context, level slog.Level) (slog.Handler, janus.StopFunc, error) {
+func getOtelHandler(ctx context.Context, levelString string) (slog.Handler, janus.StopFunc, error) {
+	level := new(slog.LevelVar)
+	switch strings.ToLower(levelString) {
+	case "debug":
+		level.Set(slog.LevelDebug)
+	case "info":
+		level.Set(slog.LevelInfo)
+	case "warn":
+		level.Set(slog.LevelWarn)
+	case "error":
+		level.Set(slog.LevelError)
+	default:
+		level.Set(slog.LevelInfo)
+	}
+
 	resource, err := getOtelResource(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating resource: %w", err)
 	}
 
-	severity := log.SeverityDebug + log.Severity(level-slog.LevelDebug)
+	severity := log.SeverityDebug + log.Severity(level.Level()-slog.LevelDebug)
 
 	// Create an exporter that will emit log records.
 	// E.g. use go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp
