@@ -197,7 +197,7 @@ func getOtelHandler(ctx context.Context, level slog.Level) (slog.Handler, janus.
 	global.SetLoggerProvider(provider)
 
 	// Set the slog handler as the global otel logger.
-	global.SetLogger(logr.FromSlogHandler(handler))
+	otel.SetLogger(logr.FromSlogHandler(handler))
 
 	// Set the global otel error handler to log errors using slog.
 	errorlogger := slog.New(handler).With(slog.String("by", "otel error handler"))
