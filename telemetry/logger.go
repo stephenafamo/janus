@@ -34,6 +34,16 @@ type LogConfig struct {
 }
 
 // NewLogger adds openTelemetry logging support if enabled via environment variable. It returns a slogstrict.Logger and a cleanup function to flush logs on shutdown.
+// Because this sets the default slog logger, it MUST NOT be called by passing the
+// bare default slog logger as the handler, or it will deadlock.
+// i.e. DO NOT do this:
+//
+//	NewLogger(ctx, cfg, slog.Default().Handler())
+//
+// Do this instead:
+//
+//	handler := slog.NewTextHandler(os.Stdout, nil)
+//	NewLogger(ctx, cfg, handler)
 func NewLogger(ctx context.Context, cfg LogConfig, handler slog.Handler) (slogstrict.Logger, janus.StopFunc, error) {
 	cleanup := janus.NoopStopFunc
 
