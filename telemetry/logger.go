@@ -33,30 +33,50 @@ type LogConfig struct {
 	EnableOtelLogging bool   `env:"ENABLE_OTEL_LOGGING"`
 }
 
+type handlerSetupFunc = func(ctx context.Context, level slog.Level) (slog.Handler, janus.StopFunc, error)
+
 // NewLogger adds openTelemetry logging support if enabled via environment variable. It returns a slogstrict.Logger and a cleanup function to flush logs on shutdown.
 // Because this sets the default slog logger, it MUST NOT be called by passing the
 // bare default slog logger as the handler, or it will deadlock.
 // i.e. DO NOT do this:
 //
-//	NewLogger(ctx, cfg, slog.Default().Handler())
+//	NewLogger(ctx, cfg, func(..){return slog.Default().Handler(), nil, nil})
 //
 // Do this instead:
 //
-//	handler := slog.NewTextHandler(os.Stdout, nil)
-//	NewLogger(ctx, cfg, handler)
-func NewLogger(ctx context.Context, cfg LogConfig, handler slog.Handler) (slogstrict.Logger, janus.StopFunc, error) {
+//	NewLogger(ctx, cfg, func(..){return slog.NewTextHandler(os.Stdout, nil), nil, nil})
+func NewLogger(ctx context.Context, cfg LogConfig, base handlerSetupFunc) (slogstrict.Logger, janus.StopFunc, error) {
+	var level slog.Level
+	switch strings.ToLower(cfg.Level) {
+	case "debug":
+		level = slog.LevelDebug
+	case "info":
+		level = slog.LevelInfo
+	case "warn":
+		level = slog.LevelWarn
+	case "error":
+		level = slog.LevelError
+	default:
+		return nil, nil, fmt.Errorf("invalid log level: %s", cfg.Level)
+	}
+
 	cleanup := janus.NoopStopFunc
 
+	handler, baseCleanup, err := base(ctx, level)
+	if err != nil {
+		return nil, nil, fmt.Errorf("creating base log handler: %w", err)
+	}
+
 	if cfg.EnableOtelLogging {
-		otelHandler, otelCleanup, err := getOtelHandler(ctx, cfg.Level)
+		otelHandler, otelCleanup, err := getOtelHandler(ctx, level)
 		if err != nil {
-			return nil, nil, fmt.Errorf("creating log handler: %w", err)
+			return nil, baseCleanup, fmt.Errorf("creating log handler: %w", err)
 		}
 
 		// Create a handler that sends log entries to both the terminal and sentry
 		// Replace with slog.MultiHandler in Go 1.26
 		handler = slogmulti.Fanout(handler, otelHandler)
-		cleanup = otelCleanup
+		cleanup = janus.CombineStopFuncs(baseCleanup, otelCleanup)
 	}
 
 	// Add OpenTelemetry handler wrapper
@@ -125,27 +145,13 @@ func (o otelSeverity) Severity() log.Severity {
 	return o.severity
 }
 
-func getOtelHandler(ctx context.Context, levelString string) (slog.Handler, janus.StopFunc, error) {
-	level := new(slog.LevelVar)
-	switch strings.ToLower(levelString) {
-	case "debug":
-		level.Set(slog.LevelDebug)
-	case "info":
-		level.Set(slog.LevelInfo)
-	case "warn":
-		level.Set(slog.LevelWarn)
-	case "error":
-		level.Set(slog.LevelError)
-	default:
-		level.Set(slog.LevelInfo)
-	}
-
+func getOtelHandler(ctx context.Context, level slog.Level) (slog.Handler, janus.StopFunc, error) {
 	resource, err := getOtelResource(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating resource: %w", err)
 	}
 
-	severity := log.SeverityDebug + log.Severity(level.Level()-slog.LevelDebug)
+	severity := log.SeverityDebug + log.Severity(level-slog.LevelDebug)
 
 	// Create an exporter that will emit log records.
 	// E.g. use go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp
