@@ -47,9 +47,9 @@ func getOtelResource(ctx context.Context) (*resource.Resource, error) {
 func SetAttrs(ctx context.Context, attrs ...slog.Attr) context.Context {
 	spanAttrs := slogAttrToSpanAttr(attrs...)
 
-	members := make([]baggage.Member, len(spanAttrs))
-	for i, kv := range spanAttrs {
-		memb, err := baggage.NewMember(string(kv.Key), kv.Value.Emit())
+	members := make([]baggage.Member, 0, len(spanAttrs))
+	for _, kv := range spanAttrs {
+		memb, err := baggage.NewMemberRaw(string(kv.Key), kv.Value.Emit())
 		if err != nil {
 			slog.ErrorContext(
 				ctx, "creating baggage member",
@@ -59,7 +59,7 @@ func SetAttrs(ctx context.Context, attrs ...slog.Attr) context.Context {
 			)
 			continue
 		}
-		members[i] = memb
+		members = append(members, memb)
 	}
 
 	bag, err := baggage.New(append(baggage.FromContext(ctx).Members(), members...)...)
